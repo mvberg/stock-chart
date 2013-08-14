@@ -27,25 +27,18 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.stockchart.core.Area;
-import org.stockchart.core.Area.Plot;
 import org.stockchart.core.Axis;
 import org.stockchart.core.Axis.Side;
 import org.stockchart.core.AxisRange;
 import org.stockchart.core.ChartElement;
 import org.stockchart.core.Crosshair;
+import org.stockchart.core.IndicatorManager;
+import org.stockchart.core.Plot;
 import org.stockchart.core.SeriesPaintInfo;
 import org.stockchart.indicators.AbstractIndicator;
-import org.stockchart.indicators.BollingerBandsIndicator;
-import org.stockchart.indicators.EmaIndicator;
-import org.stockchart.indicators.EnvelopesIndicator;
-import org.stockchart.indicators.MacdIndicator;
-import org.stockchart.indicators.RsiIndicator;
-import org.stockchart.indicators.SmaIndicator;
-import org.stockchart.indicators.StochasticIndicator;
 import org.stockchart.points.AbstractPoint;
 import org.stockchart.series.AbstractSeries;
 import org.stockchart.series.BarSeries;
-import org.stockchart.series.LinearSeries;
 import org.stockchart.series.SeriesBase;
 import org.stockchart.series.StockSeries;
 import org.stockchart.stickers.AbstractSticker;
@@ -85,6 +78,7 @@ public class StockChartView extends View
 	private static final int STICKER_FIRST_POINT = 202020;
 	private static final int STICKER_SECOND_POINT = 303030;
 	private static final int STICKER_MID_POINT = 404040;
+	
 	public class HitTestInfo
 	{
 		public ChartElement element;		
@@ -126,7 +120,9 @@ public class StockChartView extends View
 	
 	private final ArrayList<Area> fAreas = new ArrayList<Area>();
 	
-	private final ArrayList<AbstractIndicator> fIndicators = new ArrayList<AbstractIndicator>();
+	//private final ArrayList<AbstractIndicator> fIndicators = new ArrayList<AbstractIndicator>();
+	
+	private final IndicatorManager fIndicatorManager = new IndicatorManager(this);
 	
 	private final EnumMap<Axis.Side, AxisRange> fGlobalRanges = new EnumMap<Axis.Side, AxisRange>(Axis.Side.class);
 
@@ -220,9 +216,15 @@ public class StockChartView extends View
 		return fAreas;
 	}
 	
+	public IndicatorManager getIndicatorManager()
+	{
+		return fIndicatorManager;
+	}
+	
+	@Deprecated
 	public ArrayList<AbstractIndicator> getIndicators()
 	{
-		return fIndicators;
+		return fIndicatorManager.getIndicators();
 	}
 	
 	public void setClearColor(int color)
@@ -237,9 +239,21 @@ public class StockChartView extends View
 	
 	public void reset()
 	{
-		fAreas.clear();
-		fIndicators.clear();
+		fAreas.clear();		
 		fGlobalRanges.clear();
+		fIndicatorManager.getIndicators().clear();
+	}
+	
+	public Area findAreaBySeriesName(String seriesName)
+	{
+		for(Area a:fAreas)
+		{
+			SeriesBase s = a.findSeriesByName(seriesName);
+			if(null != s)
+				return a;
+		}
+		
+		return null;
 	}
 	
 	public SeriesBase findSeriesByName(String name)	
@@ -300,12 +314,7 @@ public class StockChartView extends View
 		if(j.has("indicators"))
 		{
 			JSONArray indicators = j.getJSONArray("indicators");
-			for(int i=0;i<indicators.length();i++)
-			{
-				JSONObject ind = indicators.getJSONObject(i);
-				
-				fIndicators.add(this.jsonObjectToIndicator(ind));
-			}
+			fIndicatorManager.fromJSONArray(indicators);
 		}
 		
 		fCrosshair.fromJSONObject(j.getJSONObject("crosshair"));
@@ -339,15 +348,8 @@ public class StockChartView extends View
 			ranges.put(range);
 		}
 		
-		view.put("globalAxisRanges", ranges);
-		
-		JSONArray indicators = new JSONArray();
-		for(AbstractIndicator a:fIndicators)		
-		{
-			indicators.put(this.indicatorToJSONObject(a));
-		}
-		
-		view.put("indicators", indicators);
+		view.put("globalAxisRanges", ranges);			
+		view.put("indicators", fIndicatorManager.toJSONArray());
 		
 		view.put("clearColor", fClearColor);
 		view.put("crosshair", fCrosshair.toJSONObject());
@@ -358,7 +360,7 @@ public class StockChartView extends View
 
 	public void recalcIndicators()
 	{
-		for(AbstractIndicator a: fIndicators)
+		for(AbstractIndicator a: fIndicatorManager.getIndicators())
 		{
 			a.recalc();
 		}
@@ -757,178 +759,9 @@ public class StockChartView extends View
 			this.fTouchEventUpListener.onTouchEvent(ev);
 	}
 
-	private JSONObject indicatorToJSONObject(AbstractIndicator a) throws JSONException
-	{
-		JSONObject obj = new JSONObject();
-		obj.put("valueIndex", a.getValueIndex());
-		obj.put("src", a.getSrc().getName());
-		
-		if(a instanceof EmaIndicator)
-		{
-			EmaIndicator ema = (EmaIndicator)a;
-			obj.put("type", "ema");
-			obj.put("periodsCount", ema.getPeriodsCount());
-			obj.put("dst", ema.getDst().getName());
-		}
-		else if(a instanceof SmaIndicator)
-		{
-			SmaIndicator sma = (SmaIndicator)a;
-			obj.put("type", "sma");
-			obj.put("periodsCount", sma.getPeriodsCount());
-			obj.put("dst", sma.getDst().getName());
-		}
-		else if(a instanceof RsiIndicator)
-		{
-			RsiIndicator rsi = (RsiIndicator)a;
-			obj.put("type", "rsi");
-			obj.put("periodsCount", rsi.getPeriodsCount());
-			obj.put("dst", rsi.getDst().getName());
-		}
-		else if(a instanceof EnvelopesIndicator)
-		{
-			EnvelopesIndicator env = (EnvelopesIndicator)a;
-			obj.put("type", "envelopes");
-			obj.put("periodsCount", env.getPeriodsCount());
-			obj.put("dstUpperEnvelope", env.getDstUpperEnvelope().getName());
-			obj.put("dstLowerEnvelope", env.getDstLowerEnvelope().getName());
-			obj.put("percent", env.getPercent());
-		}
-		else if(a instanceof MacdIndicator)
-		{
-			MacdIndicator macd = (MacdIndicator)a;
-			obj.put("type", "macd");
-			obj.put("longMacdPeriod", macd.getLongMacdPeriod());
-			obj.put("shortMacdPeriod", macd.getShortMacdPeriod());
-			obj.put("signalMacdPeriod", macd.getSignalPeriod());
-			obj.put("dstMacd", macd.getDstMacd().getName());
-			obj.put("dstSignal", macd.getDstSignal().getName());
-			obj.put("dstHistogram", macd.getDstHistogram().getName());	
-		}
-		else if(a instanceof BollingerBandsIndicator)
-		{
-			BollingerBandsIndicator bb = (BollingerBandsIndicator)a;
-			obj.put("type", "bb");
-			obj.put("periodsCount", bb.getPeriodsCount());
-			obj.put("lowerCoeff", bb.getLowerCoeff());
-			obj.put("upperCoeff", bb.getUpperCoeff());
-			obj.put("dstUpper", bb.getDstUpperBand().getName());
-			obj.put("dstLower", bb.getDstLowerBand().getName());
-			obj.put("dstSma", bb.getDstSMA().getName());
-		}
-		else if(a instanceof StochasticIndicator)
-		{
-			StochasticIndicator s = (StochasticIndicator)a;
-			obj.put("type", "stoch");
-			obj.put("periodsCount", s.getPeriodsCount());
-			obj.put("slowD", s.getSlowD());
-			obj.put("slowK", s.getSlowK());
-			obj.put("dstSlowD", s.getDstSlowD().getName());
-			obj.put("dstSlowK", s.getDstSlowK().getName());
-		}
-		
-		return obj;
-
-	}
 	
-	private AbstractIndicator jsonObjectToIndicator(JSONObject j) throws JSONException
-	{
-		String type = j.getString("type");
-		int valueIndex = j.getInt("valueIndex");
-		SeriesBase src = findSeriesByName(j.getString("src"));
-		
-		AbstractIndicator result = null;
-		
-		if(type.equals("sma"))
-		{
-			LinearSeries dst = (LinearSeries)findSeriesByName(j.getString("dst"));
-			int pk = j.getInt("periodsCount");
-			
-			SmaIndicator s = new SmaIndicator(src,valueIndex,dst);
-			s.setPeriodsCount(pk);
-			result = s;
-		}
-		else if(type.equals("ema"))
-		{
-			LinearSeries dst = (LinearSeries)findSeriesByName(j.getString("dst"));
-			int pk = j.getInt("periodsCount");
-			
-			EmaIndicator e = new EmaIndicator(src,valueIndex,dst);
-			e.setPeriodsCount(pk);
-			result = e;
-		}
-		else if(type.equals("rsi"))
-		{
-			LinearSeries dst = (LinearSeries)findSeriesByName(j.getString("dst"));
-			int pk = j.getInt("periodsCount");
-			
-			RsiIndicator rsi = new RsiIndicator(src,valueIndex,dst); 
-			rsi.setPeriodsCount(pk);
-			result = rsi;
-		}
-		else if(type.equals("envelopes"))		
-		{
-			LinearSeries upper = (LinearSeries)findSeriesByName(j.getString("dstUpperEnvelope"));
-			LinearSeries lower = (LinearSeries)findSeriesByName(j.getString("dstLowerEnvelope"));
-			
-			int pk = j.getInt("periodsCount");
-			double percent = j.getDouble("percent");
-			
-			EnvelopesIndicator env = new EnvelopesIndicator(src,valueIndex,upper,lower);
-			env.setPeriodsCount(pk);
-			env.setPercent(percent);
-			result = env;
-		}
-		else if(type.equals("macd"))
-		{
-			LinearSeries macd = (LinearSeries)findSeriesByName(j.getString("dstMacd"));
-			LinearSeries signal = (LinearSeries)findSeriesByName(j.getString("dstSignal"));
-			BarSeries bar = (BarSeries)findSeriesByName(j.getString("dstHistogram"));
-			int longPeriod = j.getInt("longMacdPeriod");
-			int shortPeriod = j.getInt("shortMacdPeriod");
-			int signalPeriod = j.getInt("signalMacdPeriod");
-			
-			MacdIndicator m = new MacdIndicator(src,valueIndex,macd,signal,bar);
-			m.setLongMacdPeriod(longPeriod);
-			m.setShortMacdPeriod(shortPeriod);
-			m.setSignalPeriod(signalPeriod);
-			
-			result = m;
-		}
-		else if(type.equals("bb"))
-		{
-			LinearSeries sma = (LinearSeries)findSeriesByName(j.getString("dstSma"));
-			LinearSeries upper = (LinearSeries)findSeriesByName(j.getString("dstUpper"));
-			LinearSeries lower = (LinearSeries)findSeriesByName(j.getString("dstLower"));
-			
-			int periodsCount = j.getInt("periodsCount");
-			double lowerCoeff = j.getDouble("lowerCoeff");
-			double upperCoeff = j.getDouble("upperCoeff");
-						
-			BollingerBandsIndicator bb = new BollingerBandsIndicator(src,valueIndex,sma,upper,lower);
-			bb.setPeriodsCount(periodsCount);
-			bb.setLowerCoeff(lowerCoeff);
-			bb.setUpperCoeff(upperCoeff);
-			result = bb;
-		}
-		else if(type.equals("stoch"))
-		{
-			LinearSeries d = (LinearSeries)findSeriesByName(j.getString("dstSlowD"));
-			LinearSeries k = (LinearSeries)findSeriesByName(j.getString("dstSlowK"));
-			
-			int periodsCount = j.getInt("periodsCount");
-			int sd = j.getInt("slowD");
-			int sk = j.getInt("slowK");
-			
-			StochasticIndicator s = new StochasticIndicator(src,valueIndex,d,k);
-			s.setPeriodsCount(periodsCount);
-			s.setSlowD(sd);
-			s.setSlowK(sk);
-			
-			result = s;
-		}
-
-		return result;
-	}
+	
+	
 	
 	
 	private float inPercentsOfHeight(float value)

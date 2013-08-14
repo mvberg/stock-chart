@@ -25,15 +25,19 @@ import org.stockchart.series.SeriesBase;
 public class RsiIndicator extends AbstractIndicator
 {
 	private int fPeriodsCount = 14;
-	private final LinearSeries fDst;
+	private final LinearSeries fDstRsi;
 	
 	public RsiIndicator(SeriesBase src, int valueIndex, LinearSeries dst)
 	{
-		super(src,valueIndex);
+		super(src,valueIndex, dst);
 		
-		fDst = dst;			
+		fDstRsi = dst;			
 	}
 
+	public LinearSeries getDstRsi()
+	{
+		return fDstRsi;
+	}
 	
 	public int getPeriodsCount() {
 		return fPeriodsCount;
@@ -46,15 +50,10 @@ public class RsiIndicator extends AbstractIndicator
 	}
 
 
-	public LinearSeries getDst() {
-		return fDst;
-	}
-
-
 	@Override
 	public void recalc() 
 	{		
-		fDst.getPoints().clear();
+		fDstRsi.getPoints().clear();
 		
 		double k = EmaIndicator.getK(fPeriodsCount);
 		
@@ -89,7 +88,7 @@ public class RsiIndicator extends AbstractIndicator
 					rsi = 100.0 - 100/(1.0 + rs);
 				}
 				
-				fDst.addPoint(rsi);
+				fDstRsi.addPoint(rsi);
 			}
 			else
 			{
@@ -98,7 +97,7 @@ public class RsiIndicator extends AbstractIndicator
 			}
 		}
 		
-		this.resetDstIndexOffset(getSrc(), fDst);
+		this.resetDstIndexOffset(getSrc(), fDstRsi);
 	}
 	
 	private double[] getUD(int i)

@@ -61,13 +61,13 @@ public class EmaIndicator extends AbstractIndicator
 	}
 		
 	private int fPeriodsCount = 20;
-	private final LinearSeries fDst;
+	private final LinearSeries fDstEma;
 	
 	public EmaIndicator(SeriesBase src,int valueIndex, LinearSeries dst)
 	{
-		super(src,valueIndex);
+		super(src,valueIndex, dst);
 		
-		fDst = dst;		
+		fDstEma = dst;		
 	}
 	
 	public EmaIterator iterator()
@@ -84,22 +84,22 @@ public class EmaIndicator extends AbstractIndicator
 		this.fPeriodsCount = v;
 	}
 
-	public LinearSeries getDst() {
-		return fDst;
+	public LinearSeries getDstEma() {
+		return fDstEma;
 	}
 
 	@Override
 	public void recalc()
 	{
-		fDst.getPoints().clear();
+		fDstEma.getPoints().clear();
 		
 		EmaIterator i = this.iterator();
 		while(i.hasNext())
 		{
-			fDst.getPoints().add(new LinePoint(i.getNext()));
+			fDstEma.getPoints().add(new LinePoint(i.getNext()));
 		}
 		
-		this.resetDstIndexOffset(getSrc(), fDst);
+		this.resetDstIndexOffset(getSrc(), fDstEma);
 	}
 	
 	public static double getK(int periodsCount)

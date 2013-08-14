@@ -25,7 +25,7 @@ import org.stockchart.series.SeriesBase;
 public class SmaIndicator extends AbstractIndicator
 {	
 	private int fPeriodsCount = 26;
-	private final LinearSeries fDst;
+	private final LinearSeries fDstSma;
 	
 	public class SmaIterator
 	{
@@ -68,9 +68,9 @@ public class SmaIndicator extends AbstractIndicator
 	
 	public SmaIndicator(SeriesBase src, int valueIndex, LinearSeries dst)
 	{
-		super(src,valueIndex);
+		super(src,valueIndex,  dst);
 		
-		fDst = dst;
+		fDstSma = dst;
 	}
 	
 	public int getPeriodsCount() {
@@ -81,8 +81,8 @@ public class SmaIndicator extends AbstractIndicator
 		fPeriodsCount = periodsCount;
 	}
 
-	public LinearSeries getDst() {
-		return fDst;
+	public LinearSeries getDstSma() {
+		return fDstSma;
 	}
 
 	public SmaIterator iterator()
@@ -94,15 +94,15 @@ public class SmaIndicator extends AbstractIndicator
 	@Override
 	public void recalc() 
 	{
-		fDst.getPoints().clear();
+		fDstSma.getPoints().clear();
 		
 		SmaIterator i = iterator();
 		while(i.hasNext())
 		{
-			fDst.addPoint(i.getNext());
+			fDstSma.addPoint(i.getNext());
 		}
 		
-		this.resetDstIndexOffset(getSrc(), fDst);
+		this.resetDstIndexOffset(getSrc(), fDstSma);
 		
 	}	
 }

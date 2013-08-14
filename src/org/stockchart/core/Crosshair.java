@@ -17,7 +17,6 @@ package org.stockchart.core;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.stockchart.core.Area.Plot;
 import org.stockchart.core.Axis.Side;
 import org.stockchart.utils.PaintUtils;
 import org.stockchart.utils.SizeF;

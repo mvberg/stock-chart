@@ -18,7 +18,9 @@ package org.stockchart.core;
 import org.stockchart.utils.CustomObjects;
 
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.PointF;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Region.Op;
 
@@ -28,8 +30,10 @@ import android.graphics.Region.Op;
  */
 public abstract class ChartElement 
 {
-	private final RectF fTempRect = new RectF();
-
+	private RectF fTempRectF;
+	private Rect fTempRect;
+	private Paint fPaint;
+	
 	private final ChartElement fParent;
 	
 	private final RectF fRectF = new RectF();
@@ -60,8 +64,8 @@ public abstract class ChartElement
 		c.save();
 		c.translate(fRectF.left, fRectF.top);
 		
-		fTempRect.set(0,0,fRectF.width(),fRectF.height());
-		c.clipRect(fTempRect, Op.REPLACE);		
+		this.TempRectF().set(0,0,fRectF.width(),fRectF.height());
+		c.clipRect(this.TempRectF(), Op.REPLACE);		
 	}
 	
 	private void postDraw(Canvas c)
@@ -136,4 +140,33 @@ public abstract class ChartElement
 		return new PointF(x-ab.left,y-ab.top);
 	}
 
+	protected RectF TempRectF()
+	{
+		if(null == fTempRectF)
+		{
+			fTempRectF = new RectF();
+		}
+		
+		return fTempRectF;
+	}
+	
+	protected Rect TempRect()
+	{
+		if(null == fTempRect)
+		{
+			fTempRect = new Rect();
+		}
+		
+		return fTempRect;
+	}
+	
+	protected Paint Paint()
+	{
+		if(null == fPaint)
+		{
+			fPaint = new Paint();
+		}
+		
+		return fPaint;
+	}
 }

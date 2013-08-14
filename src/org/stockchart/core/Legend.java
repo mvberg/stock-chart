@@ -44,9 +44,7 @@ public class Legend extends ChartElement
 	private Side fSide = Side.TOP;
 	
 	private final LegendItemPositionerIterator fIterator = new LegendItemPositionerIterator();
-	
-	private final RectF fTempRectF = new RectF();
-	private final Rect fTempRect = new Rect();
+		private final Rect fTempRect = new Rect();
 	
 	private final Appearance fLegendAppearance = new Appearance();
 	
@@ -56,127 +54,7 @@ public class Legend extends ChartElement
 		CIRCLE
 	}
 	
-	public class LegendItem extends ChartElement
-	{
-		private MarkerStyle fMarkerStyle = MarkerStyle.CIRCLE;
-		
-		private String fText = "";
-		
-		private Appearance fAppearance = new Appearance();
-		private float fMarkerSize = 20f;
-		
-		private final float DISTANCE_BETWEEN_TEST_AND_MARKER = 1f;
-		
-		private LegendItem()
-		{
-			super(Legend.this);
-		}
-		
-		public JSONObject toJSONObject() throws JSONException
-		{
-			JSONObject obj = new JSONObject();
-			obj.put("text", fText);
-			obj.put("appearance", fAppearance.toJSONObject());
-			obj.put("markerSize",fMarkerSize);
-			
-			return obj;
-		}
-		
-		public void fromJSONObject(JSONObject j) throws JSONException
-		{
-			fText = j.getString("text");
-			fAppearance.fromJSONObject(j.getJSONObject("appearance"));
-			fMarkerSize = (float)j.getDouble("markerSize");
-		}
-		
-		public Appearance getAppearance()
-		{
-			return fAppearance;
-		}
-		
-		public float getMarkerSize()
-		{
-			return fMarkerSize;
-		}
-		
-		public void setMarkerSize(float f)
-		{
-			fMarkerSize = f;
-		}
-		
-		public MarkerStyle getMarkerStyle()
-		{
-			return fMarkerStyle;
-		}
-		
-		public void setMarkerStyle(MarkerStyle ms)
-		{
-			fMarkerStyle = ms;
-		}
-		
-		public String getText()
-		{
-			return fText;
-		}
-		
-		public void setText(String text)
-		{
-			fText = text;
-		}
-		
-		public SizeF getSize()
-		{
-			SizeF sz = fAppearance.measureTextSize(fText, fPaint,true);
-			
 
-			sz.width+=fMarkerSize + DISTANCE_BETWEEN_TEST_AND_MARKER + getOutlineIssues(); 
-			sz.height = Math.max(fMarkerSize + getOutlineIssues(), sz.height);
-			return sz;
-		}
-	
-		protected void innerDraw(Canvas c,CustomObjects customObjects) 
-		{			
-			c.getClipBounds(fTempRect);
-			
-			float halfHeight = fTempRect.height()/2f;
-			
-			drawMarker(c,halfHeight,halfHeight,fMarkerSize/2);
-			
-			fAppearance.applyText(fPaint);
-			
-			SizeF sz = fAppearance.measureTextSize(fText, fPaint,false);
-			
-			c.drawText(fText, fMarkerSize + getOutlineIssues(), halfHeight + sz.height/2f, fPaint);
-		}
-		
-		private float getOutlineIssues()
-		{
-			return fAppearance.getOutlineWidth() * 2 + 1f + 1f; // from top and bottom 1px
-		}
-		
-		private void drawMarker(Canvas c,float x,float y,float r)
-		{			
-			switch(fMarkerStyle)
-			{
-				case SQUARE: 
-			
-					fTempRectF.set(x-r, y-r, x+r, y+r);			
-					getAppearance().applyFill(fPaint, fTempRectF);
-					c.drawRect(fTempRectF, fPaint);
-					getAppearance().applyOutline(fPaint);
-					c.drawRect(fTempRectF, fPaint);
-				break;
-				case CIRCLE:
-					getAppearance().applyFill(fPaint, fTempRectF);
-					c.drawCircle(x, y, r, fPaint);
-					getAppearance().applyOutline(fPaint);
-					c.drawCircle(x, y, r, fPaint);
-					break;
-			}		
-		}
-	}
-	
-	
 	private class LegendItemPositionerIterator
 	{
 		private int fIndex = 0;
@@ -231,7 +109,7 @@ public class Legend extends ChartElement
 		
 	}
 	
-	public Legend(Area parent)	
+	Legend(Area parent)	
 	{
 		super(parent);	
 		
@@ -270,7 +148,7 @@ public class Legend extends ChartElement
 			for(int i=0;i<items.length();i++)
 			{
 				JSONObject obj = items.getJSONObject(i);
-				LegendItem item = new LegendItem();
+				LegendItem item = new LegendItem(this);
 				item.fromJSONObject(obj);
 				
 				fItems.add(item);
@@ -292,7 +170,7 @@ public class Legend extends ChartElement
 	
 	public LegendItem addItem()
 	{
-		LegendItem i = new LegendItem();
+		LegendItem i = new LegendItem(this);
 		fItems.add(i);
 		return i;
 	}

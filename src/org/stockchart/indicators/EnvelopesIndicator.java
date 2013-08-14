@@ -34,7 +34,7 @@ public class EnvelopesIndicator extends AbstractIndicator
 	
 	public EnvelopesIndicator(SeriesBase src, int valueIndex, LinearSeries dstUpperEnv,LinearSeries dstLowerEnv)
 	{
-		super(src,valueIndex);
+		super(src,valueIndex, dstUpperEnv, dstLowerEnv);
 		
 		fDstUpperEnvelope = dstUpperEnv;
 		fDstLowerEnvelope = dstLowerEnv;		

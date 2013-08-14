@@ -48,7 +48,7 @@ public class StochasticIndicator extends AbstractIndicator
 	
 	public StochasticIndicator(SeriesBase src,int valueIndex, LinearSeries dstSlowK,LinearSeries dstSlowD)
 	{
-		super(src, valueIndex);
+		super(src, valueIndex, dstSlowK, dstSlowD);
 		fDstSlowK = dstSlowK;
 		fDstSlowD = dstSlowD;
 		fSlowKEma = new EmaIndicator(fDstFastK,0,fDstSlowK);

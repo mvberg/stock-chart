@@ -36,7 +36,7 @@ public class BollingerBandsIndicator extends AbstractIndicator
 	
 	public BollingerBandsIndicator(SeriesBase src, int valueIndex, LinearSeries dstSma,LinearSeries dstUpperBand,LinearSeries dstLowerBand)
 	{
-		super(src,valueIndex);
+		super(src,valueIndex,dstSma,dstUpperBand,dstLowerBand);
 		
 		fDstSMA = dstSma;
 		fDstUpperBand = dstUpperBand;

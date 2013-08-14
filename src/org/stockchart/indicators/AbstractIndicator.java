@@ -28,7 +28,8 @@ import android.graphics.Canvas;
  *
  */
 public abstract class AbstractIndicator 
-{		
+{	
+	private final SeriesBase[] fDst;
 	private final SeriesBase fSrc;
 	private int fValueIndex;
 	
@@ -38,10 +39,11 @@ public abstract class AbstractIndicator
 		protected void drawPoint(Canvas c, SeriesPaintInfo pinfo, float x1,	float x2, LinePoint p) { } 		
 	}
 	
-	public  <T extends AbstractPoint> AbstractIndicator(SeriesBase src,int valueIndex)
+	public AbstractIndicator(SeriesBase src,int valueIndex,SeriesBase... dstSeries)
 	{
 		fSrc = src;
-		fValueIndex = valueIndex;		
+		fValueIndex = valueIndex;
+		fDst = dstSeries;
 	}
 	
 	public int getValueIndex()
@@ -52,6 +54,11 @@ public abstract class AbstractIndicator
 	public void setValueIndex(int v)
 	{
 		fValueIndex = v;
+	}
+	
+	public SeriesBase[] getDst()
+	{
+		return fDst;
 	}
 	
 	public SeriesBase getSrc() 

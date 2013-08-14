@@ -21,131 +21,19 @@ import java.util.ArrayList;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.stockchart.StockChartView.StickerInfo;
 import org.stockchart.core.Axis.Side;
 import org.stockchart.series.SeriesBase;
 import org.stockchart.stickers.AbstractSticker;
 import org.stockchart.utils.CustomObjects;
-import org.stockchart.utils.GridPainter;
-import org.stockchart.utils.GridPainter.GridType;
 import org.stockchart.utils.PaintUtils;
 import org.stockchart.utils.Reflection;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Rect;
 import android.graphics.RectF;
 
 public class Area extends ChartElement
 {
-	public class Plot extends ChartElement
-	{	
-		private final SeriesPaintInfo fSeriesPaintInfo = new SeriesPaintInfo();
-
-		private final Appearance fPlotAppearance = new Appearance();
-		
-		private Plot()
-		{
-			super(Area.this);
-		}
-		
-		public Appearance getAppearance()
-		{
-			return fPlotAppearance;
-		}
-		
-		@Override
-		protected void innerDraw(Canvas c,CustomObjects customObjects) 
-		{
-			c.getClipBounds(fTempRect);
-			
-			fPlotAppearance.applyFill(fPaint, fTempRect);
-			
-			c.drawRect(fTempRect, fPaint);
-			
-			if(fVerticalGridVisible)
-			{					
-				Axis a = getAxis(fVerticalGridAxisSide);
-				fPaintInfo.loadFrom(a);
-				
-				Double[] values = a.getScaleValues(fPaintInfo);
-				if(null != values)
-					GridPainter.drawGrid(values, fTempRect, c, a.getAppearance(), fPaint, fPaintInfo, GridType.VERTICAL);
-			}
-			
-			if(fHorizontalGridVisible)
-			{
-				Axis a = getAxis(fHorizontalGridAxisSide);
-				fPaintInfo.loadFrom(a);
-				
-				Double[] values = a.getScaleValues(fPaintInfo);
-				
-				if(null != values)
-					GridPainter.drawGrid(values, fTempRect, c, a.getAppearance(), fPaint, fPaintInfo, GridType.HORIZONTAL);
-			}
-
-			this.fSeriesPaintInfo.reset();
-			for(SeriesBase s: fSeries)
-			{				
-				fSeriesPaintInfo.loadFrom(getAxis(s.getXAxisSide()), getAxis(s.getYAxisSide()));
-	
-				c.save();
-				s.draw(c, fSeriesPaintInfo);
-				c.restore();							
-			}
-			
-			for(Line l: fLines)
-			{
-				Axis a = getAxis(l.getAxisSide());
-				fPaintInfo.loadFrom(a);
-				l.draw(fTempRect, c, fPaintInfo);
-			}
-			
-			fSeriesPaintInfo.reset();
-			for(AbstractSticker s: fStickers)
-			{
-				fSeriesPaintInfo.loadFrom(getAxis(s.getHorizontalAxis()),
-											   getAxis(s.getVerticalAxis()));
-				
-				s.draw(fSeriesPaintInfo, c);
-			}
-			
-			
-			StickerInfo sticker = (StickerInfo)customObjects.get(CustomObjects.STICKER);
-			
-			if(null != sticker && sticker.area == (Area)this.getParent())
-			{
-				fSeriesPaintInfo.loadFrom(getAxis(sticker.sticker.getHorizontalAxis()),
-						   				  getAxis(sticker.sticker.getVerticalAxis()));
-				
-				sticker.sticker.draw(fSeriesPaintInfo, c);
-			}
-			
-			Crosshair ch = (Crosshair)customObjects.get(CustomObjects.CROSSHAIR);
-			
-			if(null != ch && ch.isVisible())
-			{
-				c.getClipBounds(fTempRect);
-				ch.draw(this, c, fTempRect);
-			}
-			
-			fPlotAppearance.applyText(fPaint);
-			if(null != fTitle)
-			{
-				fPaint.getTextBounds(fTitle, 0, fTitle.length(),fTempRect);
-				fPaint.setTextAlign(Paint.Align.LEFT);
-				c.drawText(fTitle, 2, fTempRect.height()+1,fPaint);
-			}
-			
-			
-			// draw border
-			c.getClipBounds(fTempRect);
-			PaintUtils.drawBorder(c, fPaint, fPlotAppearance,fTempRect);
-		}
-		
-	}
-
 	private final ArrayList<SeriesBase> fSeries = new ArrayList<SeriesBase>();
 	private final ArrayList<Line> fLines = new ArrayList<Line>();
 	private final ArrayList<AbstractSticker> fStickers = new ArrayList<AbstractSticker>();
@@ -159,19 +47,12 @@ public class Area extends ChartElement
 	
 	private boolean fVerticalGridVisible = true;
 	private boolean fHorizontalGridVisible = true;
-	
-	private final Paint fPaint = new Paint();	
 
 	private boolean fAutoHeight = true;
 
 	private float fHeightInPercents = 0;
-				
-	private final PaintInfo fPaintInfo = new PaintInfo();
-		
-	final Rect fTempRect = new Rect();
-	final RectF fTempRectF = new RectF();
-	
-	private final Plot fPlot = new Plot();
+							
+	private final Plot fPlot = new Plot(this);
 	private final Legend fLegend = new Legend(this);
 	
 	private String fTitle = "";
@@ -202,7 +83,7 @@ public class Area extends ChartElement
 		fAreaAppearance.setOutlineColor(Color.BLACK);
 		
 		Theme.fillAppearanceFromCurrentTheme(Area.class, fAreaAppearance);
-		Theme.fillAppearanceFromCurrentTheme(Plot.class, fPlot.fPlotAppearance);
+		
 	}		
 	
 	public float getCoordinate(Axis.Side side, double value)
@@ -629,7 +510,8 @@ public class Area extends ChartElement
 
 	private void drawEverything(Canvas c,CustomObjects customObjects)
 	{		
-		fPaint.reset();
+		this.Paint().reset();
+		
 		if(fLegend.isVisible())
 		{
 			fLegend.drawSimple(c);
@@ -708,6 +590,6 @@ public class Area extends ChartElement
 	
 	private void drawClear(Canvas c)
 	{
-		PaintUtils.drawFullRect(c, fPaint, fAreaAppearance,c.getClipBounds());
+		PaintUtils.drawFullRect(c, this.Paint(), fAreaAppearance,c.getClipBounds());
 	}
 }

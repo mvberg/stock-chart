@@ -40,7 +40,7 @@ public class MacdIndicator extends AbstractIndicator
 	
 	public MacdIndicator(SeriesBase src, int valueIndex, LinearSeries dstMacd,LinearSeries dstSignal,BarSeries dstHistogram)
 	{
-		super(src,valueIndex);
+		super(src,valueIndex,dstMacd,dstSignal,dstHistogram);
 		
 		fDstMacd = dstMacd;
 		fDstSignal = dstSignal;
