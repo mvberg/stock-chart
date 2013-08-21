@@ -85,7 +85,7 @@ public class Axis extends ChartElement implements GridPainter.IGridLabelsProvide
 	
 	private DecimalFormat fDecimalFormat = new DecimalFormat();
 	
-	public Axis(Area parent, Side side)
+	Axis(Area parent, Side side)
 	{
 		super(parent);
 		

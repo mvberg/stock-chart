@@ -16,7 +16,7 @@
 package org.stockchart.indicators;
 
 import org.stockchart.indicators.EmaIndicator.EmaIterator;
-import org.stockchart.series.LinearSeries;
+import org.stockchart.series.RangeSeries;
 import org.stockchart.series.SeriesBase;
 
 /**
@@ -29,16 +29,15 @@ public class EnvelopesIndicator extends AbstractIndicator
 		
 	private double fPercent = 1.0;
 	private int fPeriodsCount = 26;
-	private final LinearSeries fDstUpperEnvelope;
-	private final LinearSeries fDstLowerEnvelope;
+	private final RangeSeries fDstEnvelopes;
 	
-	public EnvelopesIndicator(SeriesBase src, int valueIndex, LinearSeries dstUpperEnv,LinearSeries dstLowerEnv)
+	public EnvelopesIndicator(SeriesBase src, int valueIndex, RangeSeries dstEnvelopes)
 	{
-		super(src,valueIndex, dstUpperEnv, dstLowerEnv);
+		super(src,valueIndex, dstEnvelopes);
 		
-		fDstUpperEnvelope = dstUpperEnv;
-		fDstLowerEnvelope = dstLowerEnv;		
-		fEma = new EmaIndicator(src,valueIndex,dstUpperEnv);
+		fDstEnvelopes = dstEnvelopes;
+				
+		fEma = new EmaIndicator(src,valueIndex, null);
 	}
 
 	
@@ -62,21 +61,15 @@ public class EnvelopesIndicator extends AbstractIndicator
 	}
 
 
-	public LinearSeries getDstUpperEnvelope() {
-		return fDstUpperEnvelope;
-	}
-
-
-	public LinearSeries getDstLowerEnvelope() {
-		return fDstLowerEnvelope;
+	public RangeSeries getDstEnvelopes() {
+		return fDstEnvelopes;
 	}
 
 
 	public void recalc()
 	{
-		fDstLowerEnvelope.getPoints().clear();
-		fDstUpperEnvelope.getPoints().clear();
-		
+		fDstEnvelopes.getPoints().clear();
+	
 		fEma.setPeriodsCount(fPeriodsCount);
 		EmaIterator i = fEma.iterator();
 		
@@ -86,11 +79,9 @@ public class EnvelopesIndicator extends AbstractIndicator
 			double lower = value*(1.0 - fPercent/100.0);
 			double upper = value*(1.0 + fPercent/100.0);
 			
-			fDstLowerEnvelope.addPoint(lower);
-			fDstUpperEnvelope.addPoint(upper);
+			fDstEnvelopes.addPoint(lower, upper);
 		}
 		
-		this.resetDstIndexOffset(getSrc(), fDstLowerEnvelope);
-		this.resetDstIndexOffset(getSrc(), fDstUpperEnvelope);
+		this.resetDstIndexOffset(getSrc(), fDstEnvelopes);
 	}
 }

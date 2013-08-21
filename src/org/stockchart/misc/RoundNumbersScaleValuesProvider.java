@@ -1,5 +1,5 @@
 /**
- * Copyright 12.09.2012 Alex Vikulov (vikuloff@gmail.com)
+ * Copyright 20.08.2013 Alex Vikulov (vikuloff@gmail.com)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -22,8 +22,7 @@ import org.stockchart.core.PaintInfo;
  * @author alexv
  *
  */
-@Deprecated
-public class SmartScaleValuesProvider implements IScaleValuesProvider 
+public class RoundNumbersScaleValuesProvider implements IScaleValuesProvider 
 {
 	private static final double LEVELS[] = { 1.0, 2.0, 2.5, 5.0, 7.5 };
 	private static final double ALL_LEVELS[];
@@ -54,7 +53,7 @@ public class SmartScaleValuesProvider implements IScaleValuesProvider
 			
 	}
 	
-	public SmartScaleValuesProvider(int decimals)
+	public RoundNumbersScaleValuesProvider(int decimals)
 	{
 		// i.e. decimals = 1
 		fDecimals = decimals;
@@ -119,3 +118,4 @@ public class SmartScaleValuesProvider implements IScaleValuesProvider
 	}
 
 }
+

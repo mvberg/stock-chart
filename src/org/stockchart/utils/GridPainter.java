@@ -130,7 +130,13 @@ public class GridPainter
 						_x = clipRect.right - halfWidth;
 					
 					float _y = y + dy + (isNear?textHeight + 1f:-1f); 
-					c.drawText(label, _x, _y, paint);
+					
+					app.applyFill(paint, bounds);
+
+					c.drawRect(_x, _y, _x + bounds.width(), _y + bounds.height(), paint);
+
+					app.applyText(paint);
+					c.drawText(label, _x, _y, paint);									
 				}
 			}
 			else

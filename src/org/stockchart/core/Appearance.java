@@ -233,24 +233,7 @@ public class Appearance
 	public Font getFont()
 	{
 		return fFont;
-	}
-	
-	@Deprecated
-	public float getTextSize() {
-		return fFont.getSize();
-	}
-	@Deprecated
-	public void setTextSize(float sz) {
-		this.fFont.setSize(sz);
-	}
-	@Deprecated
-	public int getTextColor() {
-		return fFont.getColor();
-	}
-	@Deprecated
-	public void setTextColor(int c) {
-		this.fFont.setColor(c);
-	}
+	}	
 	
 	public int getPrimaryFillColor() {
 		return fPrimaryFillColor;

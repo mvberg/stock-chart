@@ -31,6 +31,7 @@ import org.stockchart.indicators.SmaIndicator;
 import org.stockchart.indicators.StochasticIndicator;
 import org.stockchart.series.BarSeries;
 import org.stockchart.series.LinearSeries;
+import org.stockchart.series.RangeSeries;
 import org.stockchart.series.SeriesBase;
 
 
@@ -220,22 +221,17 @@ public class IndicatorManager
 	
 	public EnvelopesIndicator addEnvelopes(SeriesBase src, int valueIndex)
 	{
-		LinearSeries upper = new LinearSeries();
-		LinearSeries lower = new LinearSeries();
+		RangeSeries env = new RangeSeries();
 		
 		// clone parameters
-		upper.setXAxisSide(src.getXAxisSide());
-		upper.setYAxisSide(src.getYAxisSide());
-		
-		lower.setXAxisSide(src.getXAxisSide());
-		lower.setYAxisSide(src.getYAxisSide());
+		env.setXAxisSide(src.getXAxisSide());
+		env.setYAxisSide(src.getYAxisSide());
 		
 		// adding to area
 		Area a = fView.findAreaBySeriesName(src.getName());
-		a.getSeries().add(upper);
-		a.getSeries().add(lower);
+		a.getSeries().add(env);
 		
-		EnvelopesIndicator i = new EnvelopesIndicator(src, valueIndex, upper, lower);
+		EnvelopesIndicator i = new EnvelopesIndicator(src, valueIndex, env);
 		
 		fIndicators.add(i);
 		
@@ -245,26 +241,21 @@ public class IndicatorManager
 	public BollingerBandsIndicator addBollingerBands(SeriesBase src, int valueIndex)
 	{
 		LinearSeries sma = new LinearSeries();
-		LinearSeries upper = new LinearSeries();
-		LinearSeries lower = new LinearSeries();
+		RangeSeries bb = new RangeSeries();
 		
 		// clone parameters
-		upper.setXAxisSide(src.getXAxisSide());
-		upper.setYAxisSide(src.getYAxisSide());
-		
-		lower.setXAxisSide(src.getXAxisSide());
-		lower.setYAxisSide(src.getYAxisSide());
+		bb.setXAxisSide(src.getXAxisSide());
+		bb.setYAxisSide(src.getYAxisSide());
 		
 		sma.setXAxisSide(src.getXAxisSide());
 		sma.setYAxisSide(src.getYAxisSide());
 		
 		// adding to area
 		Area a = fView.findAreaBySeriesName(src.getName());
-		a.getSeries().add(upper);
-		a.getSeries().add(lower);
+		a.getSeries().add(bb);
 		a.getSeries().add(sma);
 		
-		BollingerBandsIndicator i = new BollingerBandsIndicator(src, valueIndex, sma, upper, lower);
+		BollingerBandsIndicator i = new BollingerBandsIndicator(src, valueIndex, sma, bb);
 		
 		fIndicators.add(i);
 		
@@ -281,6 +272,11 @@ public class IndicatorManager
 						 false,
 						 parent.getRightAxis().isVisible(),
 						 false);
+		
+		a.getLeftAxis().setLinesCount(3);
+		a.getRightAxis().setLinesCount(3);
+		a.getTopAxis().setScaleValuesProvider(parent.getTopAxis().getScaleValuesProvider());
+		a.getBottomAxis().setScaleValuesProvider(parent.getBottomAxis().getScaleValuesProvider());
 		
 		return a;
 	}
@@ -322,13 +318,13 @@ public class IndicatorManager
 		}
 		else if(type.equals("envelopes"))		
 		{
-			LinearSeries upper = (LinearSeries)fView.findSeriesByName(j.getString("dstUpperEnvelope"));
-			LinearSeries lower = (LinearSeries)fView.findSeriesByName(j.getString("dstLowerEnvelope"));
+			RangeSeries dst = (RangeSeries)fView.findSeriesByName(j.getString("dstEnvelope"));
+
 			
 			int pk = j.getInt("periodsCount");
 			double percent = j.getDouble("percent");
 			
-			EnvelopesIndicator env = new EnvelopesIndicator(src,valueIndex,upper,lower);
+			EnvelopesIndicator env = new EnvelopesIndicator(src,valueIndex,dst);
 			env.setPeriodsCount(pk);
 			env.setPercent(percent);
 			result = env;
@@ -352,14 +348,13 @@ public class IndicatorManager
 		else if(type.equals("bb"))
 		{
 			LinearSeries sma = (LinearSeries)fView.findSeriesByName(j.getString("dstSma"));
-			LinearSeries upper = (LinearSeries)fView.findSeriesByName(j.getString("dstUpper"));
-			LinearSeries lower = (LinearSeries)fView.findSeriesByName(j.getString("dstLower"));
+			RangeSeries bbSeries = (RangeSeries)fView.findSeriesByName(j.getString("dstBb"));
 			
 			int periodsCount = j.getInt("periodsCount");
 			double lowerCoeff = j.getDouble("lowerCoeff");
 			double upperCoeff = j.getDouble("upperCoeff");
 						
-			BollingerBandsIndicator bb = new BollingerBandsIndicator(src,valueIndex,sma,upper,lower);
+			BollingerBandsIndicator bb = new BollingerBandsIndicator(src,valueIndex,sma,bbSeries);
 			bb.setPeriodsCount(periodsCount);
 			bb.setLowerCoeff(lowerCoeff);
 			bb.setUpperCoeff(upperCoeff);
@@ -417,8 +412,7 @@ public class IndicatorManager
 			EnvelopesIndicator env = (EnvelopesIndicator)a;
 			obj.put("type", "envelopes");
 			obj.put("periodsCount", env.getPeriodsCount());
-			obj.put("dstUpperEnvelope", env.getDstUpperEnvelope().getName());
-			obj.put("dstLowerEnvelope", env.getDstLowerEnvelope().getName());
+			obj.put("dstEnvelope", env.getDstEnvelopes().getName());
 			obj.put("percent", env.getPercent());
 		}
 		else if(a instanceof MacdIndicator)
@@ -439,8 +433,7 @@ public class IndicatorManager
 			obj.put("periodsCount", bb.getPeriodsCount());
 			obj.put("lowerCoeff", bb.getLowerCoeff());
 			obj.put("upperCoeff", bb.getUpperCoeff());
-			obj.put("dstUpper", bb.getDstUpperBand().getName());
-			obj.put("dstLower", bb.getDstLowerBand().getName());
+			obj.put("dstBb", bb.getDstBb().getName());
 			obj.put("dstSma", bb.getDstSMA().getName());
 		}
 		else if(a instanceof StochasticIndicator)

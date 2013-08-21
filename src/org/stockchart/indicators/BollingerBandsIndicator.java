@@ -17,6 +17,7 @@ package org.stockchart.indicators;
 
 import org.stockchart.indicators.SmaIndicator.SmaIterator;
 import org.stockchart.series.LinearSeries;
+import org.stockchart.series.RangeSeries;
 import org.stockchart.series.SeriesBase;
 
 /**
@@ -30,31 +31,26 @@ public class BollingerBandsIndicator extends AbstractIndicator
 	private int fPeriodsCount = 20;
 	private double fUpperCoeff = 2.0;
 	private double fLowerCoeff = 2.0;
-	private final LinearSeries fDstSMA;
-	private final LinearSeries fDstUpperBand;
-	private final LinearSeries fDstLowerBand;
 	
-	public BollingerBandsIndicator(SeriesBase src, int valueIndex, LinearSeries dstSma,LinearSeries dstUpperBand,LinearSeries dstLowerBand)
+	private final LinearSeries fDstSma;
+	private final RangeSeries fDstSeries;
+	
+	public BollingerBandsIndicator(SeriesBase src, int valueIndex, LinearSeries dstSma,RangeSeries bbSeries)
 	{
-		super(src,valueIndex,dstSma,dstUpperBand,dstLowerBand);
+		super(src,valueIndex,bbSeries);
 		
-		fDstSMA = dstSma;
-		fDstUpperBand = dstUpperBand;
-		fDstLowerBand = dstLowerBand;
+		fDstSma = dstSma;
+		fDstSeries = bbSeries;
 	
 		fSma = new SmaIndicator(src,valueIndex,null);
 	}
 	
 	public LinearSeries getDstSMA() {
-		return fDstSMA;
+		return fDstSma;
 	}
 
-	public LinearSeries getDstUpperBand() {
-		return fDstUpperBand;
-	}
-
-	public LinearSeries getDstLowerBand() {
-		return fDstLowerBand;
+	public RangeSeries getDstBb() {
+		return fDstSeries;
 	}
 
 	public int getPeriodsCount() 
@@ -71,8 +67,6 @@ public class BollingerBandsIndicator extends AbstractIndicator
 	{
 		return fUpperCoeff;
 	}
-
-
 
 	public void setUpperCoeff(double v) 
 	{
@@ -97,9 +91,8 @@ public class BollingerBandsIndicator extends AbstractIndicator
 	@Override
 	public void recalc() 
 	{
-		fDstSMA.getPoints().clear();
-		fDstUpperBand.getPoints().clear();
-		fDstLowerBand.getPoints().clear();
+		fDstSma.getPoints().clear();
+		fDstSeries.getPoints().clear();
 				
 		fSma.setPeriodsCount(fPeriodsCount);
 		
@@ -121,15 +114,13 @@ public class BollingerBandsIndicator extends AbstractIndicator
 			
 			double stDev = Math.sqrt(summ / fPeriodsCount);
 			
-			fDstSMA.addPoint(sma);
-			fDstUpperBand.addPoint(sma + fUpperCoeff * stDev);
-			fDstLowerBand.addPoint(sma - fLowerCoeff * stDev);
+			fDstSma.addPoint(sma);
+			fDstSeries.addPoint(sma + fUpperCoeff * stDev, sma - fLowerCoeff * stDev);
 			i++;
 		}
 		
-		this.resetDstIndexOffset(getSrc(), fDstSMA);
-		this.resetDstIndexOffset(getSrc(), fDstUpperBand);
-		this.resetDstIndexOffset(getSrc(), fDstLowerBand);
+		this.resetDstIndexOffset(getSrc(), fDstSma);
+		this.resetDstIndexOffset(getSrc(), fDstSeries);
 	}
 
 }

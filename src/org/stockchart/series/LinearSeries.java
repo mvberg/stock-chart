@@ -191,23 +191,6 @@ public class LinearSeries extends AbstractSeries<LinePoint>
 		
 		if(y < minY)
 			minY = y;
-		
-//		if(0 != Float.compare(prevX, Float.NaN))
-//		{
-//			getAppearance().applyOutline(fPaint);
-//			
-//			c.drawLine(prevX, prevY, x, y, fPaint);
-//
-//			if(fPointsVisible)
-//			{
-//				float r = (x2-x1)*fPointSizeInPercents*0.5f;
-//				drawPoint(c, x, y, r);
-//				drawPoint(c, prevX,prevY,r);
-//			}
-//		}
-//	
-//		prevX = x;
-//		prevY = y;
 	}
 	
 	private void drawPoint(Canvas c,float x,float y,float r)
@@ -256,6 +239,7 @@ public class LinearSeries extends AbstractSeries<LinePoint>
 		fFillPath.lineTo(lastPoint.x, h);
 		fFillPath.lineTo(firstPoint.x, h);
 		fFillPath.close();
+		
 		
 		this.fTempRectF.set(firstPoint.x, minY, lastPoint.x, h);
 		this.getAppearance().applyFill(fPaint,fTempRectF);
